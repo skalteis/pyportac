@@ -16,6 +16,18 @@ amb_sample_time = 5 #seconds
 mask_purge_time = 11 #seconds
 mask_sample_time = 40 #seconds
 
+# formula for particle concentrations
+# conc = particles_counted / (duration * 1.67)
+
+# formula for fit factor, first exercise
+# ff = (conc_amb_presample + conc_amb_postsample) / 2 * conc_mask_sample
+# To prevent division by zero:
+# if conc_mask_sample = 0 then conc_mask_sample = 1 / (mask_sample_time * 1.67)
+# all further exercises
+# ff = (conc_amb_presample) / conc_mask_sample
+
+# ff for all exercises combined
+# fftotal = statistics.harmonic_mean(ff1, ff2, ..., ffn)
 
 # set port, instead of loop, devicenames such as COM3 or /dev/ttyUSB0 are also supported
 ser = serial.serial_for_url('loop://', timeout=1, do_not_open=True)
