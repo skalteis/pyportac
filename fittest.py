@@ -10,12 +10,25 @@ import time
 import re
 
 # defaults
+#ff_pass_level = 100
+#num_exercises = 8
+#amb_purge_time = 4 #seconds
+#amb_sample_time = 5 #seconds
+#mask_purge_time = 11 #seconds
+#mask_sample_time = 40 #seconds
+#mode_osha_classic = True
+#mode_osha_modified = False
+
+# defaults
 ff_pass_level = 100
 num_exercises = 8
-amb_purge_time = 4 #seconds
-amb_sample_time = 5 #seconds
-mask_purge_time = 11 #seconds
-mask_sample_time = 40 #seconds
+amb_purge_time = 1 #seconds
+amb_sample_time = 1 #seconds
+mask_purge_time = 1 #seconds
+mask_sample_time = 1 #seconds
+mode_osha_classic = True
+mode_osha_modified = False
+
 
 # formula for particle concentrations
 # conc = particles_counted / (duration * 1.67)
@@ -41,11 +54,11 @@ ser.bytesize = serial.EIGHTBITS
 ser.open()
 sio = io.TextIOWrapper(io.BufferedRWPair(ser, ser), newline="\n")
 
-sio.write(str("hello\r\n"))
-sio.flush() # it is buffering. required to get the data out *now*
-hello = sio.readline()
-print(hello == str("hello\r\n"))
-print(hello)
+#sio.write(str("hello\r\n"))
+#sio.flush() # it is buffering. required to get the data out *now*
+#hello = sio.readline()
+#print(hello == str("hello\r\n"))
+#print(hello)
 
 # switch to external control mode
 print("Switching PortaCount into external control mode.")
@@ -149,13 +162,15 @@ def ft_exercise(last_amb_conc=None, presample_ambient=False):
     #
     # Calculate fit factor
     #
-    conc_amb_pre = amb_particles_pre / (amb_sample_time * 1.67)
+
+    if (mask_particles == 0): mask_particles = 1  # prevent division by zero
+
     conc_amb_post = amb_particles_post / (amb_sample_time * 1.67)
     conc_mask = mask_particles / (mask_sample_time * 1.67)
 
-    if (mask_particles == 0): mask_particles = 1          # prevent division by zero
 
     if presample_ambient:
+        conc_amb_pre = amb_particles_pre / (amb_sample_time * 1.67)
         ffactor = (conc_amb_pre + conc_amb_post) / (2 * conc_mask)
         result = [ffactor, conc_amb_post]
     else:
@@ -166,17 +181,22 @@ def ft_exercise(last_amb_conc=None, presample_ambient=False):
 
 ff_exercises = []
 ffactor = 0
-for i in range(num_exercises - 1):
-    last_amb_conc = None
-    print("Exercise # "+ str(i + 1) + "of " + str(num_exercises) + "...")
+last_amb_conc = None
+for i in range(num_exercises):
+    print("Exercise # "+ str(i + 1) + " of " + str(num_exercises) + "...")
     if i == 0:
         ffactor = ft_exercise(last_amb_conc=last_amb_conc, presample_ambient=True)
         last_amb_conc = ffactor[1]
     else:
         ffactor = ft_exercise(last_amb_conc=last_amb_conc, presample_ambient=False)
-    print("Fit factor: " + str(ffactor[0]))
+    if mode_osha_classic and i == 5:
+        print("Fit factor: " + str(ffactor[0]) + " IGNORED! (grimace exercise)")
+    else:
+        print("Fit factor: " + str(ffactor[0]))
     ff_exercises.append(ffactor[0])
 
+if mode_osha_classic:
+    ff_exercises.pop(5)
 
 overall_ff = statistics.harmonic_mean(ff_exercises)
 print("===========")
@@ -193,8 +213,8 @@ sio.write("G\r")
 sio.flush()
 
 # list of positive real valued numbers
-data = [1, 3, 5, 7, 9]
+#data = [1, 3, 5, 7, 9]
 
 # using harmonic mean function to calculate
 # the harmonic mean of the given data-set
-print("Harmonic Mean is % s " % (statistics.harmonic_mean(data)))
+#print("Harmonic Mean is % s " % (statistics.harmonic_mean(data)))
