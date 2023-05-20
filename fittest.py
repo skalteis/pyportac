@@ -59,7 +59,9 @@ print(sio.readlines())
 
 print("Starting fit test.")
 
-def ft_excercise(presample_ambient=False):
+
+def ft_exercise(last_amb_conc=None, presample_ambient=False):
+    result = []
     if presample_ambient:
         # Switch to ambient inlet
         print("Switching to ambient inlet port.")
@@ -74,7 +76,7 @@ def ft_excercise(presample_ambient=False):
         #    # do whatever you do
 
         # Pre-mask ambient sample
-        print("Sampling from ambient inlet port.")
+        print("Analyzing ambient air.")
         t_end = time.monotonic() + amb_sample_time
         amb_particles_pre = 0
         matcher="Conc.\\s*(\\d*\\.?\\d*)\\s*#"
@@ -100,7 +102,7 @@ def ft_excercise(presample_ambient=False):
     #    # do whatever you do
 
     # Mask sample
-    print("Sampling from sample inlet port.")
+    print("Analyzing sample air.")
     t_end = time.monotonic() + mask_sample_time
     mask_particles = 0
     matcher = "Conc.\\s*(\\d*\\.?\\d*)\\s*#"
@@ -127,7 +129,7 @@ def ft_excercise(presample_ambient=False):
     #    # do whatever you do
 
     # Post-mask ambient sample
-    print("Sampling from ambient inlet port.")
+    print("Analyzing ambient air.")
     t_end = time.monotonic() + amb_sample_time
     amb_particles_post = 0
     matcher="Conc.\\s*(\\d*\\.?\\d*)\\s*#"
@@ -147,22 +149,36 @@ def ft_excercise(presample_ambient=False):
     #
     # Calculate fit factor
     #
+    conc_amb_pre = amb_particles_pre / (amb_sample_time * 1.67)
+    conc_amb_post = amb_particles_post / (amb_sample_time * 1.67)
+    conc_mask = mask_particles / (mask_sample_time * 1.67)
+
     if (mask_particles == 0): mask_particles = 1          # prevent division by zero
-    ffactor = ((amb_particles_pre / amb_sample_time) + (amb_particles_post / amb_sample_time)) / (2*(mask_particles / mask_sample_time))
-    return ffactor
 
-ffactor = 0
-for i in range(num_exercises):
-    print("Exercise #"+ str(i) + "of " + str(num_exercises) + "...")
-    if (i == 1):
-        ffactor = ft_excercise(presample_ambient=True)
+    if presample_ambient:
+        ffactor = (conc_amb_pre + conc_amb_post) / (2 * conc_mask)
+        result = [ffactor, conc_amb_post]
     else:
-        ffactor = ft_excercise()
-    print("Fit factor: " + str(ffactor))
+        ffactor = (last_amb_conc + conc_amb_post) / (2 * conc_mask)
+        result = [ffactor, conc_amb_post]
+    return result
 
 
+ff_exercises = []
+ffactor = 0
+for i in range(num_exercises - 1):
+    last_amb_conc = None
+    print("Exercise # "+ str(i + 1) + "of " + str(num_exercises) + "...")
+    if i == 0:
+        ffactor = ft_exercise(last_amb_conc=last_amb_conc, presample_ambient=True)
+        last_amb_conc = ffactor[1]
+    else:
+        ffactor = ft_exercise(last_amb_conc=last_amb_conc, presample_ambient=False)
+    print("Fit factor: " + str(ffactor[0]))
+    ff_exercises.append(ffactor[0])
 
-overall_ff = statistics.harmonic_mean()
+
+overall_ff = statistics.harmonic_mean(ff_exercises)
 print("===========")
 print("OVERALL FIT FACTOR: " + str(overall_ff))
 print("FIT FACTOR THRESHOLD: " + str(ff_pass_level))
