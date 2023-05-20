@@ -48,6 +48,7 @@ print(hello == str("hello\r\n"))
 print(hello)
 
 # switch to external control mode
+print("Switching PortaCount into external control mode.")
 sio.write("J\r")
 sio.flush()
 
@@ -56,83 +57,116 @@ sio.write("S\r")
 sio.flush()
 print(sio.readlines())
 
-# Switch to ambient inlet
-sio.write("VN\r")
-sio.flush()
+print("Starting fit test.")
 
-# Ambient purge
-time.sleep(amb_purge_time)
-#t_end = time.monotonic() + amb_purge_time
-#while time.monotonic() < t_end:
-#    # do whatever you do
+def ft_excercise(presample_ambient=False):
+    if presample_ambient:
+        # Switch to ambient inlet
+        print("Switching to ambient inlet port.")
+        sio.write("VN\r")
+        sio.flush()
 
-# Pre-mask ambient sample
-t_end = time.monotonic() + amb_sample_time
-amb_particles_pre = 0
-matcher="Conc.\\s*(\\d*\\.?\\d*)\\s*#"
-line = ""
-while time.monotonic() < t_end:
-    line = sio.readline()
+        # Ambient purge
+        print("Purging.")
+        time.sleep(amb_purge_time)
+        #t_end = time.monotonic() + amb_purge_time
+        #while time.monotonic() < t_end:
+        #    # do whatever you do
+
+        # Pre-mask ambient sample
+        print("Sampling from ambient inlet port.")
+        t_end = time.monotonic() + amb_sample_time
+        amb_particles_pre = 0
+        matcher="Conc.\\s*(\\d*\\.?\\d*)\\s*#"
+        line = ""
+        while time.monotonic() < t_end:
+            line = sio.readline()
+            sio.flush()
+            x = re.search(matcher,line)
+            if x:
+                amb_particles_pre = amb_particles_pre + float(x.lastgroup)
+
+
+    # Switch to mask inlet
+    print("Switching to sample inlet port.")
+    sio.write("VF\r")
     sio.flush()
-    x = re.search(matcher,line)
-    amb_particles_pre = amb_particles_pre + float(x.lastgroup)
+
+    # Mask purge
+    print("Purging.")
+    time.sleep(mask_purge_time)
+    #t_end = time.monotonic() + mask_purge_time
+    #while time.monotonic() < t_end:
+    #    # do whatever you do
+
+    # Mask sample
+    print("Sampling from sample inlet port.")
+    t_end = time.monotonic() + mask_sample_time
+    mask_particles = 0
+    matcher = "Conc.\\s*(\\d*\\.?\\d*)\\s*#"
+    line = ""
+    while time.monotonic() < t_end:
+        line = sio.readline()
+        sio.flush()
+        x = re.search(matcher,line)
+        if x:
+            mask_particles = mask_particles + float(x.lastgroup)
 
 
-# Switch to mask inlet
-sio.write("VF\r")
-sio.flush()
 
-# Mask purge
-time.sleep(mask_purge_time)
-#t_end = time.monotonic() + mask_purge_time
-#while time.monotonic() < t_end:
-#    # do whatever you do
-
-# Mask sample
-t_end = time.monotonic() + mask_sample_time
-mask_particles = 0
-matcher = "Conc.\\s*(\\d*\\.?\\d*)\\s*#"
-line = ""
-while time.monotonic() < t_end:
-    line = sio.readline()
+    # Switch to ambient inlet
+    print("Switching to ambient inlet port.")
+    sio.write("VN\r")
     sio.flush()
-    x = re.search(matcher,line)
-    mask_particles = mask_particles + float(x.lastgroup)
 
+    # Ambient purge
+    print("Purging.")
+    time.sleep(amb_purge_time)
+    #t_end = time.monotonic() + amb_purge_time
+    #while time.monotonic() < t_end:
+    #    # do whatever you do
 
+    # Post-mask ambient sample
+    print("Sampling from ambient inlet port.")
+    t_end = time.monotonic() + amb_sample_time
+    amb_particles_post = 0
+    matcher="Conc.\\s*(\\d*\\.?\\d*)\\s*#"
+    line = ""
+    while time.monotonic() < t_end:
+        line = sio.readline()
+        sio.flush()
+        x = re.search(matcher,line)
+        if x:
+            amb_particles_post = amb_particles_post + float(x.lastgroup)
 
-# Switch to ambient inlet
-sio.write("VN\r")
-sio.flush()
-
-# Ambient purge
-time.sleep(amb_purge_time)
-#t_end = time.monotonic() + amb_purge_time
-#while time.monotonic() < t_end:
-#    # do whatever you do
-
-# Post-mask ambient sample
-t_end = time.monotonic() + amb_sample_time
-amb_particles_post = 0
-matcher="Conc.\\s*(\\d*\\.?\\d*)\\s*#"
-line = ""
-while time.monotonic() < t_end:
-    line = sio.readline()
+    # Switch to mask inlet
+    print("Switching to sample inlet port.")
+    sio.write("VF\r")
     sio.flush()
-    x = re.search(matcher,line)
-    amb_particles_post = amb_particles_post + float(x.lastgroup)
+
+    #
+    # Calculate fit factor
+    #
+    if (mask_particles == 0): mask_particles = 1          # prevent division by zero
+    ffactor = ((amb_particles_pre / amb_sample_time) + (amb_particles_post / amb_sample_time)) / (2*(mask_particles / mask_sample_time))
+    return ffactor
+
+ffactor = 0
+for i in range(num_exercises):
+    print("Exercise #"+ str(i) + "of " + str(num_exercises) + "...")
+    if (i == 1):
+        ffactor = ft_excercise(presample_ambient=True)
+    else:
+        ffactor = ft_excercise()
+    print("Fit factor: " + str(ffactor))
 
 
-#
-# Calculate fit factor
-#
 
-if (mask_particles == 0): mask_particles = 1          # prevent division by zero
-ffactor = ((amb_particles_pre / amb_sample_time) + (amb_particles_post / amb_sample_time)) / (2*(mask_particles / mask_sample_time))
-
-print("FIT FACTOR: " + str(ffactor))
+overall_ff = statistics.harmonic_mean()
+print("===========")
+print("OVERALL FIT FACTOR: " + str(overall_ff))
 print("FIT FACTOR THRESHOLD: " + str(ff_pass_level))
-if (ffactor > ff_pass_level):
+if (overall_ff > ff_pass_level):
     print("PASSED FIT TEST.")
 else:
     print("FAILED FIT TEST!")
