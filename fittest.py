@@ -6,7 +6,8 @@
 import serial
 import io
 import statistics
-
+import time
+import re
 
 # defaults
 ff_pass_level = 100
@@ -54,6 +55,88 @@ sio.flush()
 sio.write("S\r")
 sio.flush()
 print(sio.readlines())
+
+# Switch to ambient inlet
+sio.write("VN\r")
+sio.flush()
+
+# Ambient purge
+time.sleep(amb_purge_time)
+#t_end = time.monotonic() + amb_purge_time
+#while time.monotonic() < t_end:
+#    # do whatever you do
+
+# Pre-mask ambient sample
+t_end = time.monotonic() + amb_sample_time
+amb_particles_pre = 0
+matcher="Conc.\\s*(\\d*\\.?\\d*)\\s*#"
+line = ""
+while time.monotonic() < t_end:
+    line = sio.readline()
+    sio.flush()
+    x = re.search(matcher,line)
+    amb_particles_pre = amb_particles_pre + float(x.lastgroup)
+
+
+# Switch to mask inlet
+sio.write("VF\r")
+sio.flush()
+
+# Mask purge
+time.sleep(mask_purge_time)
+#t_end = time.monotonic() + mask_purge_time
+#while time.monotonic() < t_end:
+#    # do whatever you do
+
+# Mask sample
+t_end = time.monotonic() + mask_sample_time
+mask_particles = 0
+matcher = "Conc.\\s*(\\d*\\.?\\d*)\\s*#"
+line = ""
+while time.monotonic() < t_end:
+    line = sio.readline()
+    sio.flush()
+    x = re.search(matcher,line)
+    mask_particles = mask_particles + float(x.lastgroup)
+
+
+
+# Switch to ambient inlet
+sio.write("VN\r")
+sio.flush()
+
+# Ambient purge
+time.sleep(amb_purge_time)
+#t_end = time.monotonic() + amb_purge_time
+#while time.monotonic() < t_end:
+#    # do whatever you do
+
+# Post-mask ambient sample
+t_end = time.monotonic() + amb_sample_time
+amb_particles_post = 0
+matcher="Conc.\\s*(\\d*\\.?\\d*)\\s*#"
+line = ""
+while time.monotonic() < t_end:
+    line = sio.readline()
+    sio.flush()
+    x = re.search(matcher,line)
+    amb_particles_post = amb_particles_post + float(x.lastgroup)
+
+
+#
+# Calculate fit factor
+#
+
+if (mask_particles == 0): mask_particles = 1          # prevent division by zero
+ffactor = ((amb_particles_pre / amb_sample_time) + (amb_particles_post / amb_sample_time)) / (2*(mask_particles / mask_sample_time))
+
+print("FIT FACTOR: " + str(ffactor))
+print("FIT FACTOR THRESHOLD: " + str(ff_pass_level))
+if (ffactor > ff_pass_level):
+    print("PASSED FIT TEST.")
+else:
+    print("FAILED FIT TEST!")
+
 
 # exit external control mode
 sio.write("G\r")
