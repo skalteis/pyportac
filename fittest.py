@@ -1,6 +1,7 @@
 #
 #
-#   Simple test script to interface with a TSI PortaCount Plus, version for the German Bundeswehr
+#   Simple test script to interface with a TSI PortaCount Plus 8020M, German version
+#   Should work with all 8020 family models using a serial protocol
 #
 
 import serial
