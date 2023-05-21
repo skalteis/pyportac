@@ -14,7 +14,8 @@ import getopt
 port = "loop://"
 baudrate = 1200
 number = 8
-matcher="Conc.\\s*(\\d*\\.?\\d*)\\s*#"
+#matcher="Conc.\\s*(\\d*\\.?\\d*)\\s*#"
+matcher="^(\\d*\\.\\d*)"
 # defaults
 ff_pass_level = 100
 num_exercises = 8
