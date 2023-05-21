@@ -14,6 +14,15 @@ import getopt
 port = "loop://"
 baudrate = 1200
 number = 8
+# defaults
+ff_pass_level = 100
+num_exercises = 8
+amb_purge_time = 4 #seconds
+amb_sample_time = 5 #seconds
+mask_purge_time = 11 #seconds
+mask_sample_time = 40 #seconds
+mode_osha_classic = True
+mode_osha_modified = False
 
 argv = sys.argv[1:]
 
@@ -52,25 +61,6 @@ if mode == "modified":
     mode_osha_modified = True
     ff_pass_level = 100
 
-# defaults
-#ff_pass_level = 100
-#num_exercises = 8
-#amb_purge_time = 4 #seconds
-#amb_sample_time = 5 #seconds
-#mask_purge_time = 11 #seconds
-#mask_sample_time = 40 #seconds
-#mode_osha_classic = True
-#mode_osha_modified = False
-
-# defaults
-ff_pass_level = 100
-num_exercises = 8
-amb_purge_time = 1 #seconds
-amb_sample_time = 1 #seconds
-mask_purge_time = 1 #seconds
-mask_sample_time = 1 #seconds
-mode_osha_classic = True
-mode_osha_modified = False
 
 
 # formula for particle concentrations
@@ -97,21 +87,10 @@ ser.bytesize = serial.EIGHTBITS
 ser.open()
 sio = io.TextIOWrapper(io.BufferedRWPair(ser, ser), newline="\n")
 
-#sio.write(str("hello\r\n"))
-#sio.flush() # it is buffering. required to get the data out *now*
-#hello = sio.readline()
-#print(hello == str("hello\r\n"))
-#print(hello)
-
 # switch to external control mode
 print("Switching PortaCount into external control mode.")
 sio.write("J\r")
 sio.flush()
-
-# request settings
-sio.write("S\r")
-sio.flush()
-print(sio.readlines())
 
 print("Starting fit test.")
 
@@ -127,9 +106,7 @@ def ft_exercise(last_amb_conc=None, presample_ambient=False):
         # Ambient purge
         print("Purging.")
         time.sleep(amb_purge_time)
-        #t_end = time.monotonic() + amb_purge_time
-        #while time.monotonic() < t_end:
-        #    # do whatever you do
+
 
         # Pre-mask ambient sample
         print("Analyzing ambient air.")
@@ -153,9 +130,7 @@ def ft_exercise(last_amb_conc=None, presample_ambient=False):
     # Mask purge
     print("Purging.")
     time.sleep(mask_purge_time)
-    #t_end = time.monotonic() + mask_purge_time
-    #while time.monotonic() < t_end:
-    #    # do whatever you do
+
 
     # Mask sample
     print("Analyzing sample air.")
@@ -180,9 +155,7 @@ def ft_exercise(last_amb_conc=None, presample_ambient=False):
     # Ambient purge
     print("Purging.")
     time.sleep(amb_purge_time)
-    #t_end = time.monotonic() + amb_purge_time
-    #while time.monotonic() < t_end:
-    #    # do whatever you do
+
 
     # Post-mask ambient sample
     print("Analyzing ambient air.")
@@ -232,9 +205,7 @@ def ft_osha_modified():
     # Ambient purge
     print("Purging.")
     time.sleep(amb_purge_time)
-    #t_end = time.monotonic() + amb_purge_time
-    #while time.monotonic() < t_end:
-    #    # do whatever you do
+
 
     # Pre-mask ambient sample
     print("Analyzing ambient air.")
@@ -258,9 +229,7 @@ def ft_osha_modified():
     # Mask purge
     print("Purging.")
     time.sleep(mask_purge_time)
-    #t_end = time.monotonic() + mask_purge_time
-    #while time.monotonic() < t_end:
-    #    # do whatever you do
+
 
     # Mask sample
     print("Analyzing sample air.")
@@ -327,9 +296,7 @@ def ft_osha_modified():
     # Ambient purge
     print("Purging.")
     time.sleep(amb_purge_time)
-    #t_end = time.monotonic() + amb_purge_time
-    #while time.monotonic() < t_end:
-    #    # do whatever you do
+
 
     # Post-mask ambient sample
     print("Analyzing ambient air.")
@@ -421,10 +388,3 @@ else:
 # exit external control mode
 sio.write("G\r")
 sio.flush()
-
-# list of positive real valued numbers
-#data = [1, 3, 5, 7, 9]
-
-# using harmonic mean function to calculate
-# the harmonic mean of the given data-set
-#print("Harmonic Mean is % s " % (statistics.harmonic_mean(data)))
