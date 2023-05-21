@@ -14,6 +14,7 @@ import getopt
 port = "loop://"
 baudrate = 1200
 number = 8
+matcher="Conc.\\s*(\\d*\\.?\\d*)\\s*#"
 # defaults
 ff_pass_level = 100
 num_exercises = 8
@@ -112,7 +113,6 @@ def ft_exercise(last_amb_conc=None, presample_ambient=False):
         print("Analyzing ambient air.")
         t_end = time.monotonic() + amb_sample_time
         amb_particles_pre = 0
-        matcher="Conc.\\s*(\\d*\\.?\\d*)\\s*#"
         line = ""
         while time.monotonic() < t_end:
             line = sio.readline()
@@ -136,7 +136,6 @@ def ft_exercise(last_amb_conc=None, presample_ambient=False):
     print("Analyzing sample air.")
     t_end = time.monotonic() + mask_sample_time
     mask_particles = 0
-    matcher = "Conc.\\s*(\\d*\\.?\\d*)\\s*#"
     line = ""
     while time.monotonic() < t_end:
         line = sio.readline()
@@ -161,7 +160,6 @@ def ft_exercise(last_amb_conc=None, presample_ambient=False):
     print("Analyzing ambient air.")
     t_end = time.monotonic() + amb_sample_time
     amb_particles_post = 0
-    matcher="Conc.\\s*(\\d*\\.?\\d*)\\s*#"
     line = ""
     while time.monotonic() < t_end:
         line = sio.readline()
@@ -211,7 +209,6 @@ def ft_osha_modified():
     print("Analyzing ambient air.")
     t_end = time.monotonic() + 20
     amb_particles_pre = 0
-    matcher="Conc.\\s*(\\d*\\.?\\d*)\\s*#"
     line = ""
     while time.monotonic() < t_end:
         line = sio.readline()
@@ -235,7 +232,6 @@ def ft_osha_modified():
     print("Analyzing sample air.")
     t_end = time.monotonic() + 30
     mask_particles_1 = 0
-    matcher = "Conc.\\s*(\\d*\\.?\\d*)\\s*#"
     line = ""
     while time.monotonic() < t_end:
         line = sio.readline()
@@ -249,7 +245,6 @@ def ft_osha_modified():
     print("Analyzing sample air.")
     t_end = time.monotonic() + 30
     mask_particles_2 = 0
-    matcher = "Conc.\\s*(\\d*\\.?\\d*)\\s*#"
     line = ""
     while time.monotonic() < t_end:
         line = sio.readline()
@@ -263,7 +258,6 @@ def ft_osha_modified():
     print("Analyzing sample air.")
     t_end = time.monotonic() + 30
     mask_particles_3 = 0
-    matcher = "Conc.\\s*(\\d*\\.?\\d*)\\s*#"
     line = ""
     while time.monotonic() < t_end:
         line = sio.readline()
@@ -276,8 +270,6 @@ def ft_osha_modified():
     # Mask sample
     print("Analyzing sample air.")
     t_end = time.monotonic() + 30
-    mask_particles_4 = 0
-    matcher = "Conc.\\s*(\\d*\\.?\\d*)\\s*#"
     line = ""
     while time.monotonic() < t_end:
         line = sio.readline()
@@ -302,7 +294,6 @@ def ft_osha_modified():
     print("Analyzing ambient air.")
     t_end = time.monotonic() + 9
     amb_particles_post = 0
-    matcher="Conc.\\s*(\\d*\\.?\\d*)\\s*#"
     line = ""
     while time.monotonic() < t_end:
         line = sio.readline()
