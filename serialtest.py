@@ -40,5 +40,14 @@ ser.bytesize = serial.EIGHTBITS
 ser.open()
 sio = io.TextIOWrapper(io.BufferedRWPair(ser, ser), newline="\n")
 
+# external control
+sio.write("J\r")
+sio.flush()
+
+
+# request settings
+sio.write("S\r")
+sio.flush()
+
 while True:
     print(sio.readlines())
