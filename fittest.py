@@ -22,7 +22,7 @@ matcher="^(\\d*\\.\\d*)"
 # defaults
 ff_pass_level = 100
 num_exercises = 8
-amb_purge_time = 4 #seconds
+amb_purge_time = 10  # 4 seconds
 amb_sample_time = 5 #seconds
 mask_purge_time = 11 #seconds
 mask_sample_time = 40 #seconds
@@ -33,11 +33,11 @@ argv = sys.argv[1:]
 
 try:
     opts, args = getopt.getopt(argv, "p:r:m:n:t",
-                               ["port =",
-                                "baudrate =",
-                                "mode =",
-                                "number =",
-                                "threshold ="])
+                               ["port=",
+                                "baudrate=",
+                                "mode=",
+                                "number=",
+                                "threshold="])
 
 except:
     print("Error")
@@ -97,11 +97,11 @@ sio = io.TextIOWrapper(io.BufferedRWPair(ser, ser), newline=None)
 # switch to external control mode
 sio.write("G\r")
 sio.flush()
-time.sleep(1)
+time.sleep(4)
 print("Switching PortaCount into external control mode.")
 sio.write("J\r")
 sio.flush()
-time.sleep(2)
+time.sleep(4)
 
 print("Starting fit test.")
 
