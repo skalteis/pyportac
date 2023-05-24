@@ -89,6 +89,7 @@ ser.baudrate = baudrate
 ser.parity = serial.PARITY_NONE
 ser.stopbits = serial.STOPBITS_ONE
 ser.bytesize = serial.EIGHTBITS
+ser.rtscts = True
 ser.inter_byte_timeout = 0.5
 ser.open()
 sio = io.TextIOWrapper(io.BufferedRWPair(ser, ser), newline=None)
