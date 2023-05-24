@@ -12,9 +12,11 @@ import re
 import sys
 import getopt
 
-port = "loop://"
+port = "COM9"
 baudrate = 1200
+#baudrate = 600
 number = 8
+mode = "classic"
 #matcher="Conc.\\s*(\\d*\\.?\\d*)\\s*#"
 matcher="^(\\d*\\.\\d*)"
 # defaults
@@ -80,20 +82,25 @@ if mode == "modified":
 # fftotal = statistics.harmonic_mean(ff1, ff2, ..., ffn)
 
 # set port, instead of loop, devicenames such as COM3 or /dev/ttyUSB0 are also supported
-ser = serial.serial_for_url(port, timeout=1, do_not_open=True)
+ser = serial.serial_for_url(port, timeout=5, do_not_open=True)
 # PortaCount is baudrate 1200, no parity, 8 bit, 1 stopbit
 # hardware flow control (CTS) is non-required per DIP switch 8 (set to ON, confusingly) in the factory config
 ser.baudrate = baudrate
 ser.parity = serial.PARITY_NONE
 ser.stopbits = serial.STOPBITS_ONE
 ser.bytesize = serial.EIGHTBITS
+ser.inter_byte_timeout = 0.5
 ser.open()
-sio = io.TextIOWrapper(io.BufferedRWPair(ser, ser), newline="\n")
+sio = io.TextIOWrapper(io.BufferedRWPair(ser, ser), newline=None)
 
 # switch to external control mode
+sio.write("G\r")
+sio.flush()
+time.sleep(1)
 print("Switching PortaCount into external control mode.")
 sio.write("J\r")
 sio.flush()
+time.sleep(2)
 
 print("Starting fit test.")
 
@@ -121,7 +128,7 @@ def ft_exercise(last_amb_conc=None, presample_ambient=False):
             sio.flush()
             x = re.search(matcher,line)
             if x:
-                amb_particles_pre = amb_particles_pre + float(x.lastgroup)
+                amb_particles_pre = amb_particles_pre + float(x.string)
 
 
     # Switch to mask inlet
@@ -144,7 +151,7 @@ def ft_exercise(last_amb_conc=None, presample_ambient=False):
         sio.flush()
         x = re.search(matcher,line)
         if x:
-            mask_particles = mask_particles + float(x.lastgroup)
+            mask_particles = mask_particles + float(x.string)
 
 
 
@@ -168,7 +175,7 @@ def ft_exercise(last_amb_conc=None, presample_ambient=False):
         sio.flush()
         x = re.search(matcher,line)
         if x:
-            amb_particles_post = amb_particles_post + float(x.lastgroup)
+            amb_particles_post = amb_particles_post + float(x.string)
 
     # Switch to mask inlet
     print("Switching to sample inlet port.")
@@ -217,7 +224,7 @@ def ft_osha_modified():
         sio.flush()
         x = re.search(matcher,line)
         if x:
-            amb_particles_pre = amb_particles_pre + float(x.lastgroup)
+            amb_particles_pre = amb_particles_pre + float(x.string)
 
 
     # Switch to mask inlet
@@ -240,7 +247,7 @@ def ft_osha_modified():
         sio.flush()
         x = re.search(matcher,line)
         if x:
-            mask_particles_1 = mask_particles_1 + float(x.lastgroup)
+            mask_particles_1 = mask_particles_1 + float(x.string)
 
     print("Exercise #2 (30 sec)")
     # Mask sample
@@ -253,7 +260,7 @@ def ft_osha_modified():
         sio.flush()
         x = re.search(matcher,line)
         if x:
-            mask_particles_2 = mask_particles_2 + float(x.lastgroup)
+            mask_particles_2 = mask_particles_2 + float(x.string)
 
     print("Exercise #3 (30 sec)")
     # Mask sample
@@ -266,7 +273,7 @@ def ft_osha_modified():
         sio.flush()
         x = re.search(matcher,line)
         if x:
-            mask_particles_3 = mask_particles_3 + float(x.lastgroup)
+            mask_particles_3 = mask_particles_3 + float(x.string)
 
     print("Exercise #4 (30 sec + 9 sec + purge time)")
     # Mask sample
@@ -278,7 +285,7 @@ def ft_osha_modified():
         sio.flush()
         x = re.search(matcher,line)
         if x:
-            mask_particles_4 = mask_particles_4 + float(x.lastgroup)
+            mask_particles_4 = mask_particles_4 + float(x.string)
 
 
 
@@ -302,7 +309,7 @@ def ft_osha_modified():
         sio.flush()
         x = re.search(matcher,line)
         if x:
-            amb_particles_post = amb_particles_post + float(x.lastgroup)
+            amb_particles_post = amb_particles_post + float(x.string)
 
     # Switch to mask inlet
     print("Switching to sample inlet port.")
