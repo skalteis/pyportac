@@ -19,15 +19,20 @@ number = 8
 mode = "classic"
 #matcher="Conc.\\s*(\\d*\\.?\\d*)\\s*#"
 matcher="^(\\d*\\.\\d*)"
+
+# TODO: Make times configurable via commandline options
+
 # defaults
+minimum_particle_conc = 1000
 ff_pass_level = 100
 num_exercises = 8
-amb_purge_time = 10  # 4 seconds
+amb_purge_time = 4  # 4 seconds
 amb_sample_time = 5 #seconds
 mask_purge_time = 11 #seconds
 mask_sample_time = 40 #seconds
 mode_osha_classic = True
 mode_osha_modified = False
+mode_live=False
 
 argv = sys.argv[1:]
 
@@ -65,7 +70,10 @@ if mode == "modified":
     mode_osha_classic = False
     mode_osha_modified = True
     ff_pass_level = 100
-
+if mode == "live":
+    mode_live = True
+    mode_osha_classic = False
+    mode_osha_modified = False
 
 
 # formula for particle concentrations
@@ -342,6 +350,53 @@ def ft_osha_modified():
     print(result)
     return result
 
+if mode_live:
+    print("Entering live fit factor mode, 1 min ambient sampling timeframe.")
+    while True:
+        # Switch to ambient inlet
+        print("Switching to ambient inlet port.")
+        sio.write("VN\r")
+        sio.flush()
+
+        # Ambient purge
+        print("Purging.")
+        time.sleep(amb_purge_time)
+
+        # Post-mask ambient sample
+        print("Analyzing ambient air.")
+        t_end = time.monotonic() + 9
+        amb_particles_post = 0
+        line = ""
+        while time.monotonic() < t_end:
+            line = sio.readline()
+            sio.flush()
+            x = re.search(matcher, line)
+            if x:
+                amb_particles_post = amb_particles_post + float(x.string)
+
+        # Switch to mask inlet
+        print("Switching to sample inlet port.")
+        sio.write("VF\r")
+        sio.flush()
+
+        # Mask purge
+        print("Purging.")
+        time.sleep(mask_purge_time)
+
+        # Mask sample
+        print("Analyzing sample air.")
+        t_end = time.monotonic() + 60
+        mask_particles_1 = 0
+        line = ""
+        while time.monotonic() < t_end:
+             line = sio.readline()
+             sio.flush()
+             x = re.search(matcher, line)
+             if x:
+                 mask_particles_1 = float(x.string)
+             if mask_particles_1 == 0:
+                 mask_particles_1 = 1
+             print("Fit factor (now): ",str((amb_particles_post / mask_particles_1)))
 
 
 
