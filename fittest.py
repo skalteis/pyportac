@@ -354,7 +354,7 @@ def ft_osha_modified():
     return result
 
 if mode_live:
-    print("Entering live fit factor mode, 1 min ambient sampling timeframe.")
+    print("Entering live fit factor mode, 2 min ambient sampling timeframe.")
     while True:
         # Switch to ambient inlet
         print("Switching to ambient inlet port.")
@@ -366,9 +366,10 @@ if mode_live:
         time.sleep(amb_purge_time)
 
         # Post-mask ambient sample
-        print("Analyzing ambient air.")
-        t_end = time.monotonic() + 9
+        print("Analyzing ambient air (30 sec).")
+        t_end = time.monotonic() + 30
         amb_particles_post = 0
+        counter_lines_amb = 0
         line = ""
         while time.monotonic() < t_end:
             line = sio.readline()
@@ -378,6 +379,7 @@ if mode_live:
                 amb_particles_post = amb_particles_post + float(x.string)
                 if amb_particles_post < minimum_particle_conc:
                     print("WARNING: Ambient particle concentration is too low: " + str(int(amb_particles_post)))
+                counter_lines_amb = counter_lines_amb + 1
 
 
         # Switch to mask inlet
@@ -390,9 +392,10 @@ if mode_live:
         time.sleep(mask_purge_time)
 
         # Mask sample
-        print("Analyzing sample air.")
-        t_end = time.monotonic() + 60
+        print("Analyzing sample air (120 sec).")
+        t_end = time.monotonic() + 120
         mask_particles_1 = 0
+        counter_lines_sample = 0
         line = ""
         while time.monotonic() < t_end:
              line = sio.readline()
@@ -402,7 +405,7 @@ if mode_live:
                  mask_particles_1 = float(x.string)
              if mask_particles_1 == 0:
                  mask_particles_1 = 1
-             print("Fit factor (now): ",str((amb_particles_post / mask_particles_1)))
+             print("Fit factor (now): ",str(((amb_particles_post / counter_lines_amb) / mask_particles_1)))
 
 
 
