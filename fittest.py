@@ -139,7 +139,7 @@ def ft_exercise(last_amb_conc=None, presample_ambient=False):
             if x:
                 amb_particles_pre = amb_particles_pre + float(x.string)
                 if float(x.string) < minimum_particle_conc:
-                    print("WARNING: Ambient particle concentration is too low: " + str(int(amb_particles_pre)))
+                    print("WARNING: Ambient particle concentration is too low: " + str(int(float(x.string))))
 
 
     # Switch to mask inlet
@@ -237,7 +237,7 @@ def ft_osha_modified():
         if x:
             amb_particles_pre = amb_particles_pre + float(x.string)
             if float(x.string) < minimum_particle_conc:
-                print("WARNING: Ambient particle concentration is too low: " + str(int(amb_particles_pre)))
+                print("WARNING: Ambient particle concentration is too low: " + str(int(float(x.string))))
 
     # Switch to mask inlet
     print("Switching to sample inlet port.")
@@ -378,7 +378,7 @@ if mode_live:
             if x:
                 amb_particles_post = amb_particles_post + float(x.string)
                 if float(x.string) < minimum_particle_conc:
-                    print("WARNING: Ambient particle concentration is too low: " + str(int(amb_particles_post)))
+                    print("WARNING: Ambient particle concentration is too low: " + str(int(float(x.string))))
                 counter_lines_amb = counter_lines_amb + 1
 
 
