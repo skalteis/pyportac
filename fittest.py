@@ -131,6 +131,7 @@ def ft_exercise(last_amb_conc=None, presample_ambient=False):
         print("Analyzing ambient air.")
         t_end = time.monotonic() + amb_sample_time
         amb_particles_pre = 0
+        counter_amb_particles_pre = 0 # count lines recieved
         line = ""
         while time.monotonic() < t_end:
             line = sio.readline()
@@ -140,7 +141,7 @@ def ft_exercise(last_amb_conc=None, presample_ambient=False):
                 amb_particles_pre = amb_particles_pre + float(x.string)
                 if float(x.string) < minimum_particle_conc:
                     print("WARNING: Ambient particle concentration is too low: " + str(int(float(x.string))))
-
+                counter_amb_particles_pre = counter_amb_particles_pre + 1
 
     # Switch to mask inlet
     print("Switching to sample inlet port.")
@@ -156,6 +157,7 @@ def ft_exercise(last_amb_conc=None, presample_ambient=False):
     print("Analyzing sample air.")
     t_end = time.monotonic() + mask_sample_time
     mask_particles = 0
+    counter_mask_particles = 0  # count lines recieved
     line = ""
     while time.monotonic() < t_end:
         line = sio.readline()
@@ -163,7 +165,7 @@ def ft_exercise(last_amb_conc=None, presample_ambient=False):
         x = re.search(matcher,line)
         if x:
             mask_particles = mask_particles + float(x.string)
-
+            counter_mask_particles = counter_mask_particles + 1
 
 
     # Switch to ambient inlet
@@ -180,6 +182,7 @@ def ft_exercise(last_amb_conc=None, presample_ambient=False):
     print("Analyzing ambient air.")
     t_end = time.monotonic() + amb_sample_time
     amb_particles_post = 0
+    counter_amb_particles_post = 0
     line = ""
     while time.monotonic() < t_end:
         line = sio.readline()
@@ -187,6 +190,7 @@ def ft_exercise(last_amb_conc=None, presample_ambient=False):
         x = re.search(matcher,line)
         if x:
             amb_particles_post = amb_particles_post + float(x.string)
+            counter_amb_particles_post = counter_amb_particles_post + 1
 
     # Switch to mask inlet
     print("Switching to sample inlet port.")
@@ -199,12 +203,12 @@ def ft_exercise(last_amb_conc=None, presample_ambient=False):
 
     if (mask_particles == 0): mask_particles = 1  # prevent division by zero
 
-    conc_amb_post = amb_particles_post / (amb_sample_time * 1.67)
-    conc_mask = mask_particles / (mask_sample_time * 1.67)
+    conc_amb_post = amb_particles_post / counter_amb_particles_post
+    conc_mask = mask_particles / counter_mask_particles
 
 
     if presample_ambient:
-        conc_amb_pre = amb_particles_pre / (amb_sample_time * 1.67)
+        conc_amb_pre = amb_particles_pre / counter_amb_particles_pre
         ffactor = (conc_amb_pre + conc_amb_post) / (2 * conc_mask)
         result = [ffactor, conc_amb_post]
     else:
