@@ -229,6 +229,7 @@ def ft_osha_modified():
     print("Analyzing ambient air.")
     t_end = time.monotonic() + 20
     amb_particles_pre = 0
+    counter_amb_particles_pre = 0
     line = ""
     while time.monotonic() < t_end:
         line = sio.readline()
@@ -238,6 +239,7 @@ def ft_osha_modified():
             amb_particles_pre = amb_particles_pre + float(x.string)
             if float(x.string) < minimum_particle_conc:
                 print("WARNING: Ambient particle concentration is too low: " + str(int(float(x.string))))
+            counter_amb_particles_pre = counter_amb_particles_pre + 1
 
     # Switch to mask inlet
     print("Switching to sample inlet port.")
@@ -253,6 +255,7 @@ def ft_osha_modified():
     print("Analyzing sample air.")
     t_end = time.monotonic() + 30
     mask_particles_1 = 0
+    counter_mask_particles_1 = 0
     line = ""
     while time.monotonic() < t_end:
         line = sio.readline()
@@ -260,12 +263,14 @@ def ft_osha_modified():
         x = re.search(matcher,line)
         if x:
             mask_particles_1 = mask_particles_1 + float(x.string)
+            counter_mask_particles_1 = counter_mask_particles_1 + 1
 
     print("Exercise #2 (30 sec)")
     # Mask sample
     print("Analyzing sample air.")
     t_end = time.monotonic() + 30
     mask_particles_2 = 0
+    counter_mask_particles_2 = 0
     line = ""
     while time.monotonic() < t_end:
         line = sio.readline()
@@ -273,12 +278,14 @@ def ft_osha_modified():
         x = re.search(matcher,line)
         if x:
             mask_particles_2 = mask_particles_2 + float(x.string)
+            counter_mask_particles_2 = counter_mask_particles_2 + 1
 
     print("Exercise #3 (30 sec)")
     # Mask sample
     print("Analyzing sample air.")
     t_end = time.monotonic() + 30
     mask_particles_3 = 0
+    counter_mask_particles_3 = 0
     line = ""
     while time.monotonic() < t_end:
         line = sio.readline()
@@ -286,11 +293,14 @@ def ft_osha_modified():
         x = re.search(matcher,line)
         if x:
             mask_particles_3 = mask_particles_3 + float(x.string)
+            counter_mask_particles_3 = counter_mask_particles_3 + 1
 
     print("Exercise #4 (30 sec + 9 sec + purge time)")
     # Mask sample
     print("Analyzing sample air.")
     t_end = time.monotonic() + 30
+    mask_particles_4 = 0
+    counter_mask_particles_4 = 0
     line = ""
     while time.monotonic() < t_end:
         line = sio.readline()
@@ -298,7 +308,7 @@ def ft_osha_modified():
         x = re.search(matcher,line)
         if x:
             mask_particles_4 = mask_particles_4 + float(x.string)
-
+            counter_mask_particles_4 = counter_mask_particles_4 + 1
 
 
     # Switch to ambient inlet
@@ -315,6 +325,7 @@ def ft_osha_modified():
     print("Analyzing ambient air.")
     t_end = time.monotonic() + 9
     amb_particles_post = 0
+    counter_amb_particles_post = 0
     line = ""
     while time.monotonic() < t_end:
         line = sio.readline()
@@ -322,6 +333,7 @@ def ft_osha_modified():
         x = re.search(matcher,line)
         if x:
             amb_particles_post = amb_particles_post + float(x.string)
+            counter_amb_particles_post = counter_amb_particles_post + 1
 
     # Switch to mask inlet
     print("Switching to sample inlet port.")
@@ -337,12 +349,12 @@ def ft_osha_modified():
     if mask_particles_3 == 0: mask_particles_3 = 1  # prevent division by zero
     if mask_particles_4 == 0: mask_particles_4 = 1  # prevent division by zero
 
-    conc_amb_pre = amb_particles_pre / (20 * 1.67)
-    conc_amb_post = amb_particles_post / (9 * 1.67)
-    conc_mask_1 = mask_particles_1 / (30 * 1.67)
-    conc_mask_2 = mask_particles_2 / (30 * 1.67)
-    conc_mask_3 = mask_particles_3 / (30 * 1.67)
-    conc_mask_4 = mask_particles_4 / (30 * 1.67)
+    conc_amb_pre = amb_particles_pre / counter_amb_particles_pre
+    conc_amb_post = amb_particles_post / counter_amb_particles_post
+    conc_mask_1 = mask_particles_1 / counter_mask_particles_1
+    conc_mask_2 = mask_particles_2 / counter_mask_particles_2
+    conc_mask_3 = mask_particles_3 / counter_mask_particles_3
+    conc_mask_4 = mask_particles_4 / counter_mask_particles_4
 
     ffactor_1 = (conc_amb_pre + conc_amb_post) / (2 * conc_mask_1)
     ffactor_2 = (conc_amb_pre + conc_amb_post) / (2 * conc_mask_2)
